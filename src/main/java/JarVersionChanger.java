@@ -63,22 +63,23 @@ public class JarVersionChanger {
     public static void main(String... args) throws Throwable {
         Options options = new Options();
 
-        Option optionVerbose = new Option("v", "verbose", false, "If this ");
+        Option optionVerbose = new Option("v", "verbose", false, "Enable verbose logging");
         optionVerbose.setRequired(false);
         options.addOption(optionVerbose);
 
-        Option optionOutput = new Option("o", "output", false, "Output path of the new jar file .");
+        Option optionOutput = new Option("o", "output", false, "Specifies the output path for the new modified jar file .");
         optionOutput.setRequired(false);
         options.addOption(optionOutput);
 
-        Option optionMajorVersion = new Option(null, "major-version", true, "Specify the major ");
+        Option optionMajorVersion = new Option(null, "major-version", true, "Specifies  the new major version for the jar ");
         optionMajorVersion.setRequired(true);
         options.addOption(optionMajorVersion);
 
         HelpFormatter formatter = new HelpFormatter();
         CommandLineParser parser = new DefaultParser();
+		
         CommandLine cmd;
-
+		
         File jarFile = new File(args[0]);
         if (!(jarFile.exists() && jarFile.getAbsolutePath().endsWith(".jar"))) {
             System.err.println("File does not exist or is not a jar file");
@@ -93,7 +94,7 @@ public class JarVersionChanger {
             try {
                 majorVersion = Integer.parseInt(cmd.getOptionValue("major-version"));
             } catch (NumberFormatException e) {
-                System.err.println("major-version only accepts integer values ");
+                System.err.println("major-version can only be a integer ");
                 System.exit(1);
             }
 
