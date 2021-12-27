@@ -2,9 +2,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -27,38 +27,27 @@ public class JarVersionChanger {
         mVerbose = verbose;
     }
 
-    public void start() throws IOException {
-        try (JarInputStream zis = new JarInputStream(new FileInputStream(mJarFile));
-                JarOutputStream zos = new JarOutputStream(new FileOutputStream(mOutputFile))) {
+    public void start() {
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(mJarFile));
+                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(mOutputFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                zos.putNextEntry(entry);
+				String name = entry.getName();
+                zos.putNextEntry(new ZipEntry(name));
+                System.out.println("Skipping " + entry.getName() + " as its is not a class file.");
                 if (entry.getName().endsWith(".class")) {
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    if ((len = zis.read(buffer)) != -1) {
-                        /*
-                        8th byte carries information about major version
-                        so basically this change that byte to new version.
-                        */
-                        int oldVersion = buffer[7];
-                        buffer[7] = (byte) mMajorVersion;
-                        zos.write(buffer, 0, len);
-                        if (mVerbose) {
-                            System.out.println(
-                                    "Changing version of "
-                                            + entry.getName()
-                                            + " from "
-                                            + oldVersion
-                                            + " to "
-                                            + mMajorVersion);
-                        }
+                    /*
+                    8th byte carries information about major version
+                    so basically this change that byte to new version.
+                    */
+                    for (int i = 0; i < 7 && zis.available() > 0; i++) {
+                        zos.write(zis.read());
                     }
-                    while ((len = zis.read(buffer)) != -1) {
-                        zos.write(buffer, 0, len);
-                    }
-                    continue;
+                    int oldVersion = zis.read();
+                    zos.write(mMajorVersion);
+					System.out.println("Changing version of "+ name+ " from "+ oldVersion+ " to "+ mMajorVersion);
                 }
+
                 byte[] buffer = new byte[1024];
                 int len;
                 while ((len = zis.read(buffer)) != -1) {
@@ -107,7 +96,6 @@ public class JarVersionChanger {
                 System.err.println("major-version only accepts integer values ");
                 System.exit(1);
             }
-            System.out.println(cmd.hasOption("o"));
 
             if (cmd.hasOption("o")) {
                 outputPath = new File(cmd.getOptionValue(optionOutput));
@@ -120,7 +108,6 @@ public class JarVersionChanger {
                                         + majorVersion
                                         + ".jar");
             }
-            System.out.println(outputPath);
             if (cmd.hasOption("v")) {
                 verbose = true;
             }
