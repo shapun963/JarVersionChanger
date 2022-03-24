@@ -28,4 +28,10 @@ jobs:
     - name: Build with Gradle
       uses: gradle/gradle-build-action@0d13054264b0bb894ded474f08ebb30921341cee
       with:
-        arguments: build
+        arguments: shadowJar
+    - name: Upload jar
+      uses: actions/upload-artifact@v2
+      if: ${{ !github.head_ref }}
+      with:
+          name: jar_version_changer-all
+          path: app/build/libs
