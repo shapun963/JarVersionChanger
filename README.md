@@ -10,5 +10,5 @@ java -jar jar_version_changer-all.jar path_of_jar -major 52
 ```
 cd path_of_project
 ./gradlew shadowJar 
-java -jar  app/build/libs/app-all.jar app/build/libs/app-all.jar --major  52
+java -jar  app/build/libs/app-all.jar some_jar_file.jar --major  52
 ```
